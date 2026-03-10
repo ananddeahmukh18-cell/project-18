@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: webcode-terminal
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: KITE_API_KEY
+        value: ""          # Set in Render Dashboard if using live mode
+      - key: KITE_API_SECRET
+        value: ""
+      - key: KITE_ACCESS_TOKEN
+        value: ""
