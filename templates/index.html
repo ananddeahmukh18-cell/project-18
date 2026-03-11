@@ -6,6 +6,7 @@
 <title>WebCode Terminal — Professional Trading Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/globe.gl"></script>
 <style>
 :root {
   --bg0:#050709;--bg1:#080c11;--bg2:#0c1119;--bg3:#101520;--bg4:#141b26;
@@ -117,12 +118,6 @@ body::after{content:'';position:fixed;top:0;left:0;right:0;height:1px;background
 
 /* PANEL */
 .panel{background:var(--bg1);border:1px solid var(--b1);border-radius:4px;display:flex;flex-direction:column;overflow:hidden;position:relative;}
-.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;opacity:0;transition:opacity .2s;}
-.panel:hover::before{opacity:1;}
-.panel.pg::before{background:linear-gradient(90deg,var(--g1),transparent);}
-.panel.pb::before{background:linear-gradient(90deg,var(--a1),transparent);}
-.panel.pr::before{background:linear-gradient(90deg,var(--r1),transparent);}
-.panel.py::before{background:linear-gradient(90deg,var(--y1),transparent);}
 .ph{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--b0);flex-shrink:0;}
 .pt{font-family:var(--display);font-size:.68rem;font-weight:700;color:var(--txt2);letter-spacing:.15em;text-transform:uppercase;}
 .pbg{font-size:.52rem;letter-spacing:.1em;padding:2px 5px;border-radius:2px;font-weight:700;font-family:var(--mono);}
@@ -153,7 +148,6 @@ body::after{content:'';position:fixed;top:0;left:0;right:0;height:1px;background
 .fl{display:block;font-size:.56rem;color:var(--txt3);letter-spacing:.14em;text-transform:uppercase;margin-bottom:3px;font-family:var(--mono);}
 .fv{width:100%;background:var(--bg2);border:1px solid var(--b1);border-radius:2px;padding:6px 9px;color:var(--txt1);font-family:var(--mono);font-size:.76rem;outline:none;transition:border-color .15s;font-weight:500;}
 .fv:focus{border-color:var(--a1);background:var(--bg3);}
-.fv::placeholder{color:var(--txt4);}
 select.fv option{background:var(--bg2);color:var(--txt1);}
 
 .btn{width:100%;padding:9px;border:1px solid transparent;border-radius:4px;font-family:var(--hero);font-size:.95rem;letter-spacing:.12em;cursor:pointer;transition:all .15s;}
@@ -173,30 +167,20 @@ select.fv option{background:var(--bg2);color:var(--txt1);}
 /* PNL */
 .pnl-banner{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--b0);border:1px solid var(--b1);border-radius:4px;overflow:hidden;margin-bottom:8px;}
 .pnl-cell{background:var(--bg2);padding:12px 14px;text-align:center;position:relative;}
-.pnl-cell::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
-.pnl-cell.rc::before{background:linear-gradient(90deg,transparent,var(--g1),transparent);}
-.pnl-cell.uc::before{background:linear-gradient(90deg,transparent,var(--a1),transparent);}
 .pnl-lbl{font-size:.55rem;color:var(--txt3);letter-spacing:.16em;text-transform:uppercase;margin-bottom:5px;}
 .pnl-val{font-family:var(--hero);font-size:2rem;letter-spacing:.05em;line-height:1;transition:color .4s;}
-
-/* MARGIN BAR */
-.mbar-labels{display:flex;justify-content:space-between;font-size:.6rem;color:var(--txt3);margin-bottom:4px;}
-.mbar-track{height:4px;background:var(--b1);border-radius:2px;overflow:hidden;}
-.mbar-fill{height:100%;background:linear-gradient(90deg,var(--g1),var(--a1));border-radius:2px;transition:width .5s ease;box-shadow:0 0 6px rgba(0,255,136,.3);}
 
 /* TABLE */
 .dt{width:100%;border-collapse:collapse;font-size:.68rem;}
 .dt th{text-align:left;padding:5px 9px;font-size:.54rem;letter-spacing:.14em;text-transform:uppercase;color:var(--txt3);border-bottom:1px solid var(--b1);white-space:nowrap;font-family:var(--mono);font-weight:600;background:var(--bg2);position:sticky;top:0;}
 .dt td{padding:6px 9px;border-bottom:1px solid var(--b0);font-family:var(--mono);color:var(--txt2);white-space:nowrap;transition:background .1s;}
 .dt tr:hover td{background:var(--bg3);}
-.dt tr:last-child td{border-bottom:none;}
 
 .tag{display:inline-flex;align-items:center;font-size:.54rem;padding:2px 5px;border-radius:2px;font-weight:700;letter-spacing:.08em;font-family:var(--mono);}
 .tag.buy{color:var(--g1);background:var(--gd);border:1px solid rgba(0,255,136,.2);}
 .tag.sell{color:var(--r1);background:var(--rd);border:1px solid rgba(255,45,85,.2);}
 .tag.ok{color:var(--g1);background:var(--gd);}
 .tag.pend{color:var(--y1);background:var(--yd);}
-.tag.canc{color:var(--txt3);background:var(--bg3);}
 
 /* TOAST */
 #toasts{position:fixed;top:46px;right:10px;z-index:9000;display:flex;flex-direction:column;gap:5px;pointer-events:none;}
@@ -212,55 +196,15 @@ select.fv option{background:var(--bg2);color:var(--txt1);}
 .right-panel{width:245px;min-width:245px;background:var(--bg1);border-left:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden;}
 .rp-tabs{display:flex;border-bottom:1px solid var(--b1);flex-shrink:0;}
 .rp-tab{flex:1;padding:7px 4px;text-align:center;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;border-top:none;border-left:none;border-right:none;background:none;font-family:var(--mono);font-weight:700;}
-.rp-tab:hover{color:var(--txt2);}
 .rp-tab.active{color:var(--g1);border-bottom-color:var(--g1);}
 .rp-body{flex:1;overflow-y:auto;}
 .rp-row{display:flex;justify-content:space-between;padding:5px 11px;font-size:.66rem;color:var(--txt2);border-bottom:1px solid var(--b0);}
-.rp-row:last-child{border-bottom:none;}
 .rp-row .k{color:var(--txt3);font-size:.58rem;}
 .rp-row .v{font-family:var(--mono);font-weight:600;color:var(--txt1);}
-
 .je{padding:7px 11px;border-bottom:1px solid var(--b0);font-size:.63rem;}
 .je-time{color:var(--txt3);font-size:.56rem;margin-bottom:2px;}
 .je-sym{font-weight:700;color:var(--txt1);font-family:var(--display);}
 
-/* SCANNER */
-.scan-item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--b0);}
-.scan-item:last-child{border-bottom:none;}
-.scan-sym{font-family:var(--display);font-weight:700;color:var(--txt1);font-size:.8rem;}
-.scan-why{font-size:.58rem;color:var(--txt3);margin-top:2px;}
-.sig{font-size:.56rem;padding:2px 6px;border-radius:20px;font-weight:700;letter-spacing:.07em;font-family:var(--mono);}
-.sig.BUY{color:var(--g1);background:var(--gd);border:1px solid rgba(0,255,136,.2);}
-.sig.SELL{color:var(--r1);background:var(--rd);border:1px solid rgba(255,45,85,.2);}
-
-/* RISK METER */
-.rm{display:flex;align-items:center;gap:9px;padding:9px;background:var(--bg2);border:1px solid var(--b1);border-radius:4px;margin-top:8px;}
-.rm-ring{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.58rem;font-weight:700;flex-shrink:0;border:2px solid;}
-.rm-low{border-color:var(--g1);color:var(--g1);background:var(--gd);}
-.rm-med{border-color:var(--y1);color:var(--y1);background:var(--yd);}
-.rm-high{border-color:var(--r1);color:var(--r1);background:var(--rd);}
-.rm-lbl{font-size:.58rem;color:var(--txt3);}
-.rm-val{font-size:.75rem;font-weight:700;color:var(--txt1);}
-
-/* ALERTS */
-.al-item{display:flex;align-items:center;gap:7px;padding:7px 11px;border-bottom:1px solid var(--b0);font-size:.65rem;}
-.al-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
-.al-dot.on{background:var(--g1);box-shadow:0 0 5px var(--g1);}
-.al-dot.off{background:var(--txt3);}
-
-/* OPTION CHAIN */
-.oc-row{display:grid;grid-template-columns:1fr auto 1fr;gap:4px;align-items:center;padding:3px 9px;border-bottom:1px solid var(--b0);font-size:.63rem;font-family:var(--mono);}
-.oc-row.hdr{color:var(--txt3);font-size:.53rem;letter-spacing:.1em;background:var(--bg2);}
-.oc-strike{text-align:center;color:var(--txt1);font-weight:700;font-size:.68rem;padding:1px 5px;background:var(--bg3);border-radius:2px;}
-.oc-call{color:var(--g1);text-align:right;}
-.oc-put{color:var(--r1);}
-
-/* SPARKLINE */
-.sparkbars{display:flex;align-items:flex-end;gap:1px;height:100%;padding:0 2px;}
-.spbar{flex:1;border-radius:1px 1px 0 0;min-height:2px;opacity:.75;}
-
-.spin{width:11px;height:11px;border:2px solid var(--b2);border-top-color:var(--a1);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;}
-@keyframes sp{to{transform:rotate(360deg);}}
 .no-data{padding:16px;text-align:center;color:var(--txt3);font-size:.68rem;letter-spacing:.05em;}
 </style>
 </head>
@@ -269,7 +213,6 @@ select.fv option{background:var(--bg2);color:var(--txt1);}
 
 <div class="shell">
 
-<!-- TITLE BAR -->
 <div class="titlebar">
   <div class="tb-logo">
     <div>
@@ -286,54 +229,43 @@ select.fv option{background:var(--bg2);color:var(--txt1);}
   </div>
   <div class="tb-right">
     <button class="tb-btn" onclick="showTab('dashboard')">⬡ DASH</button>
+    <button class="tb-btn" onclick="showTab('geotrade')">🌍 GEOTRADE</button>
     <button class="tb-btn" onclick="showTab('trade')">⇄ TRADE</button>
-    <button class="tb-btn" onclick="showTab('markets')">⊞ MKTS</button>
-    <button class="tb-btn" onclick="showTab('scanner')">◎ SCAN</button>
     <div class="tb-pill"><div class="ldot"></div><span id="h-mode">PAPER</span></div>
     <div class="tb-clock" id="tb-clock">--:--:--</div>
   </div>
 </div>
 
-<!-- ICON NAV -->
 <nav class="iconnav">
   <div class="inav-item active" id="nav-dashboard" onclick="showTab('dashboard')" data-tip="Dashboard"><span>⬡</span><span class="lbl">Dash</span></div>
+  <div class="inav-item" id="nav-geotrade" onclick="showTab('geotrade')" data-tip="GeoTrade"><span>🌍</span><span class="lbl">Geo</span></div>
   <div class="inav-item" id="nav-trade" onclick="showTab('trade')" data-tip="Trade"><span>⇄</span><span class="lbl">Trade</span></div>
   <div class="inav-item" id="nav-portfolio" onclick="showTab('portfolio')" data-tip="Portfolio"><span>◈</span><span class="lbl">Port</span></div>
   <div class="inav-sep"></div>
   <div class="inav-item" id="nav-charts" onclick="showTab('charts')" data-tip="Charts"><span>◻</span><span class="lbl">Chart</span></div>
-  <div class="inav-item" id="nav-scanner" onclick="showTab('scanner')" data-tip="Scanner"><span>◎</span><span class="lbl">Scan</span></div>
-  <div class="inav-item" id="nav-markets" onclick="showTab('markets')" data-tip="Markets"><span>⊞</span><span class="lbl">Mkt</span></div>
-  <div class="inav-sep"></div>
-  <div class="inav-item" id="nav-alerts" onclick="showTab('alerts')" data-tip="Alerts"><span>🔔</span><span class="lbl">Alert</span></div>
   <div class="inav-item" id="nav-orders" onclick="showTab('orders')" data-tip="Orders"><span>≡</span><span class="lbl">Orders</span></div>
 </nav>
 
-<!-- WORKSPACE -->
 <div class="workspace">
 
-  <!-- LEFT WATCHLIST -->
   <div class="side-panel">
     <div class="sp-hdr"><span class="sp-title">Watchlist</span><span class="sp-act">+ Add</span></div>
     <div class="sp-search"><input class="sp-inp" placeholder="Search…" id="wl-search" oninput="filterWL(this.value)"></div>
     <div class="wl-body" id="wl-body"></div>
   </div>
 
-  <!-- MAIN AREA -->
   <div class="main-area">
     <div class="tab-bar">
       <button class="tab active" id="tab-dashboard" onclick="showTab('dashboard')"><span class="tab-dot"></span>DASHBOARD</button>
+      <button class="tab" id="tab-geotrade" onclick="showTab('geotrade')"><span class="tab-dot"></span>GEOTRADE</button>
       <button class="tab" id="tab-trade" onclick="showTab('trade')"><span class="tab-dot"></span>TRADE</button>
       <button class="tab" id="tab-portfolio" onclick="showTab('portfolio')"><span class="tab-dot"></span>PORTFOLIO</button>
       <button class="tab" id="tab-charts" onclick="showTab('charts')"><span class="tab-dot"></span>CHARTS</button>
-      <button class="tab" id="tab-scanner" onclick="showTab('scanner')"><span class="tab-dot"></span>SCANNER</button>
-      <button class="tab" id="tab-markets" onclick="showTab('markets')"><span class="tab-dot"></span>MARKETS</button>
-      <button class="tab" id="tab-alerts" onclick="showTab('alerts')"><span class="tab-dot"></span>ALERTS</button>
       <button class="tab" id="tab-orders" onclick="showTab('orders')"><span class="tab-dot"></span>ORDERS</button>
     </div>
 
     <div class="pages">
 
-      <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
         <div class="grid g5">
           <div class="st st-g"><div class="stl">Realized P&L</div><div class="stv up" id="s-realized">₹0.00</div><div class="sts">Booked today</div></div>
@@ -344,62 +276,65 @@ select.fv option{background:var(--bg2);color:var(--txt1);}
         </div>
 
         <div class="grid" style="grid-template-columns:1fr 1fr 240px;gap:8px">
-          <!-- P&L Panel -->
-          <div class="panel pg s2">
+          <div class="panel s2">
             <div class="ph"><span class="pt">Portfolio P&L</span><span class="pbg sim" id="mode-badge">PAPER MODE</span></div>
             <div class="pb">
               <div class="pnl-banner">
                 <div class="pnl-cell rc"><div class="pnl-lbl">Net Realized P&L</div><div class="pnl-val up" id="d-realized">₹0.00</div></div>
                 <div class="pnl-cell uc"><div class="pnl-lbl">Unrealized MTM</div><div class="pnl-val" id="d-unrealized">₹0.00</div></div>
               </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <div>
-                  <div class="stl" style="margin-bottom:6px">MARGIN</div>
-                  <div class="rp-row" style="padding:3px 0;border:none"><span class="k">Cash</span><span class="v up" id="d-balance">₹1,00,000</span></div>
-                  <div class="rp-row" style="padding:3px 0;border:none"><span class="k">Blocked</span><span class="v" id="d-invested">₹0</span></div>
-                  <div style="margin-top:8px">
-                    <div class="mbar-labels"><span>Utilization</span><span id="d-mpct" style="color:var(--txt1)">0%</span></div>
-                    <div class="mbar-track"><div id="d-mfill" class="mbar-fill" style="width:0%"></div></div>
-                  </div>
-                </div>
-                <div>
-                  <div class="stl" style="margin-bottom:6px">LIVE POSITIONS</div>
-                  <div id="d-positions" style="max-height:90px;overflow-y:auto"><div class="no-data" style="padding:6px 0">No positions</div></div>
-                </div>
-              </div>
             </div>
           </div>
 
-          <!-- Quick Order -->
           <div class="panel pb">
-            <div class="ph"><span class="pt">Quick Order</span><span class="pbg info">FAST</span></div>
+            <div class="ph"><span class="pt">Quick Order</span></div>
             <div class="pb">
               <div class="side-toggle">
                 <button class="stgl buy on" id="q-buy" onclick="setQSide('BUY')">▲ BUY</button>
                 <button class="stgl sell" id="q-sell" onclick="setQSide('SELL')">▼ SELL</button>
               </div>
-              <div class="fi"><label class="fl">Symbol</label><input class="fv" id="q-sym" list="sdl" placeholder="RELIANCE…" oninput="qEst()"><datalist id="sdl"><option value="NIFTY"><option value="BANKNIFTY"><option value="RELIANCE"><option value="TCS"><option value="INFY"><option value="HDFC"><option value="ICICIBANK"><option value="SBIN"><option value="WIPRO"></datalist></div>
+              <div class="fi"><label class="fl">Symbol</label><input class="fv" id="q-sym" list="sdl" placeholder="RELIANCE…" oninput="qEst()"><datalist id="sdl"><option value="NIFTY"><option value="BANKNIFTY"><option value="RELIANCE"></datalist></div>
               <div class="fi"><label class="fl">Qty</label><input class="fv" id="q-qty" type="number" value="1" min="1" oninput="qEst()"></div>
-              <div class="fi"><label class="fl">Type</label><select class="fv" id="q-type" onchange="qEst()"><option value="MARKET">MARKET</option><option value="LIMIT">LIMIT</option></select></div>
-              <div class="fi" id="q-pg" style="display:none"><label class="fl">Price ₹</label><input class="fv" id="q-price" type="number" step=".05" placeholder="0.00"></div>
               <div class="est-grid"><div class="ec"><div class="ek">LTP</div><div class="ev" id="q-ltp">—</div></div><div class="ec"><div class="ek">Est. Value</div><div class="ev" id="q-est">—</div></div></div>
               <button class="btn btn-buy" id="q-btn" onclick="doQOrder()">PLACE BUY ORDER</button>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Session Sparkline -->
-        <div class="panel" style="min-height:56px;flex-shrink:0">
-          <div class="ph"><span class="pt">Session P&L Trend</span></div>
-          <div class="pb" style="display:flex;align-items:flex-end;gap:2px;height:32px;padding:6px 12px" id="sparkline"></div>
+      <div class="page" id="page-geotrade" style="padding:0; flex-direction:row; overflow:hidden; position:relative;">
+        <div id="globeViz" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;"></div>
+        
+        <div style="position:relative; z-index:2; width:300px; background:rgba(8,12,17,0.85); backdrop-filter:blur(8px); border-right:1px solid var(--b1); display:flex; flex-direction:column; padding:15px; gap:15px;">
+           <div class="ph" style="padding:0 0 10px 0; border-bottom:1px solid var(--b0);"><span class="pt" style="color:var(--g1);">Global Tension Index</span></div>
+           <div style="text-align:center; padding:15px 0;">
+              <div style="font-family:var(--hero); font-size:4rem; line-height:1; color:var(--y1);" id="gt-val">--</div>
+              <div style="font-size:.8rem; color:var(--txt2); letter-spacing:.1em; font-weight:700;" id="gt-stat">--</div>
+           </div>
+           
+           <div class="ph" style="padding:10px 0; border-bottom:1px solid var(--b0); border-top:1px solid var(--b0);"><span class="pt">Earth Pulse (Live)</span></div>
+           <div id="gt-events" style="display:flex; flex-direction:column; gap:10px; flex:1; overflow-y:auto;">
+              <div class="no-data">Loading events...</div>
+           </div>
+        </div>
+
+        <div style="position:relative; z-index:2; width:340px; background:rgba(8,12,17,0.85); backdrop-filter:blur(8px); border-left:1px solid var(--b1); display:flex; flex-direction:column; padding:15px; margin-left:auto;">
+           <div class="ph" style="padding:0 0 10px 0; border-bottom:1px solid var(--b0);"><span class="pt" style="color:var(--a1);">AI Signals</span></div>
+           <div id="gt-signals" style="display:flex; flex-direction:column; gap:12px; margin-top:12px; flex:1; overflow-y:auto;">
+              <div class="no-data">Loading signals...</div>
+           </div>
+        </div>
+        
+        <div style="position:absolute; bottom:20px; left:320px; z-index:2; background:rgba(8,12,17,0.8); border:1px solid var(--b1); padding:8px 12px; border-radius:4px; display:flex; gap:12px; font-size:.6rem; font-family:var(--mono); text-transform:uppercase; letter-spacing:.1em; color:var(--txt2);">
+            <div style="display:flex; align-items:center; gap:5px;"><div style="width:8px;height:8px;background:#ff2d55;border-radius:50%;"></div> Military</div>
+            <div style="display:flex; align-items:center; gap:5px;"><div style="width:8px;height:8px;background:#ffcc00;border-radius:50%;"></div> Sanctions</div>
+            <div style="display:flex; align-items:center; gap:5px;"><div style="width:8px;height:8px;background:#00aaff;border-radius:50%;"></div> Trade</div>
+            <div style="display:flex; align-items:center; gap:5px;"><div style="width:8px;height:8px;background:#00ff88;border-radius:50%;"></div> Diplomatic</div>
         </div>
       </div>
 
-      <!-- TRADE -->
       <div class="page" id="page-trade">
-        <div class="grid" style="grid-template-columns:260px 1fr 240px;gap:8px;flex:1;min-height:0">
-
-          <!-- Order Entry -->
+        <div class="grid" style="grid-template-columns:260px 1fr;gap:8px;flex:1;min-height:0">
           <div class="panel pb" style="height:fit-content">
             <div class="ph"><span class="pt">Order Entry</span></div>
             <div class="pb">
@@ -407,211 +342,158 @@ select.fv option{background:var(--bg2);color:var(--txt1);}
                 <button class="stgl buy on" id="t-buy" onclick="setTSide('BUY')">▲ BUY</button>
                 <button class="stgl sell" id="t-sell" onclick="setTSide('SELL')">▼ SELL</button>
               </div>
-              <div class="fi"><label class="fl">Symbol</label><input class="fv" id="t-sym" list="sdl2" placeholder="e.g. RELIANCE" oninput="tEst()"><datalist id="sdl2"><option value="NIFTY"><option value="BANKNIFTY"><option value="RELIANCE"><option value="TCS"><option value="INFY"><option value="HDFC"><option value="ICICIBANK"><option value="SBIN"></datalist></div>
+              <div class="fi"><label class="fl">Symbol</label><input class="fv" id="t-sym" placeholder="e.g. RELIANCE" oninput="tEst()"></div>
               <div class="fi"><label class="fl">Quantity</label><input class="fv" id="t-qty" type="number" value="1" min="1" oninput="tEst()"></div>
-              <div class="fi"><label class="fl">Order Type</label><select class="fv" id="t-type" onchange="toggleTP()"><option value="MARKET">MARKET</option><option value="LIMIT">LIMIT</option><option value="SL-M">SL-MARKET</option></select></div>
-              <div class="fi" id="t-pg" style="display:none"><label class="fl">Limit Price ₹</label><input class="fv" id="t-price" type="number" step=".05"></div>
-              <div class="fi"><label class="fl">Stop Loss ₹</label><input class="fv" id="t-sl" type="number" step=".05" placeholder="0.00" oninput="tEst()"></div>
-              <div class="fi"><label class="fl">Target ₹</label><input class="fv" id="t-tp" type="number" step=".05" placeholder="0.00" oninput="tEst()"></div>
-              <div class="est-grid" style="grid-template-columns:1fr 1fr 1fr"><div class="ec"><div class="ek">LTP</div><div class="ev" id="t-ltp">—</div></div><div class="ec"><div class="ek">Value</div><div class="ev" id="t-est">—</div></div><div class="ec"><div class="ek">R:R</div><div class="ev" id="t-rr">—</div></div></div>
+              <div class="est-grid" style="grid-template-columns:1fr 1fr"><div class="ec"><div class="ek">LTP</div><div class="ev" id="t-ltp">—</div></div><div class="ec"><div class="ek">Value</div><div class="ev" id="t-est">—</div></div></div>
               <button class="btn btn-buy" id="t-btn" onclick="doTOrder()">PLACE BUY ORDER</button>
             </div>
           </div>
-
-          <!-- Positions + Option Chain -->
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="panel pg" style="flex:1">
-              <div class="ph"><span class="pt">Open Positions</span><span class="pbg live">● LIVE</span></div>
+          <div class="panel pg" style="flex:1">
+              <div class="ph"><span class="pt">Open Positions</span></div>
               <div style="overflow-y:auto;flex:1">
-                <table class="dt"><thead><tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>P&L</th><th>P&L%</th></tr></thead>
-                <tbody id="t-positions"><tr><td colspan="7" class="no-data">No positions</td></tr></tbody></table>
+                <table class="dt"><thead><tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>P&L</th></tr></thead>
+                <tbody id="t-positions"><tr><td colspan="6" class="no-data">No positions</td></tr></tbody></table>
               </div>
-            </div>
-            <div class="panel" style="flex-shrink:0">
-              <div class="ph"><span class="pt">Option Chain Snapshot</span><span class="pbg info">NIFTY ATM ±200</span></div>
-              <div style="max-height:150px;overflow-y:auto">
-                <div class="oc-row hdr"><div style="text-align:right">CALL OI / LTP</div><div style="text-align:center">STRIKE</div><div>PUT LTP / OI</div></div>
-                <div id="oc-body"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Risk Calc -->
-          <div class="panel py" style="height:fit-content">
-            <div class="ph"><span class="pt">Risk Calculator</span><span class="pbg info">TOOL</span></div>
-            <div class="pb">
-              <div class="fi"><label class="fl">Account Size ₹</label><input class="fv" id="rc-size" type="number" value="100000" oninput="calcRisk()"></div>
-              <div class="fi"><label class="fl">Risk Per Trade %</label><input class="fv" id="rc-risk" type="number" value="1" step=".1" min=".1" max="10" oninput="calcRisk()"></div>
-              <div class="fi"><label class="fl">Entry Price ₹</label><input class="fv" id="rc-entry" type="number" oninput="calcRisk()"></div>
-              <div class="fi"><label class="fl">Stop Loss ₹</label><input class="fv" id="rc-sl" type="number" oninput="calcRisk()"></div>
-              <div class="est-grid"><div class="ec"><div class="ek">Max Risk</div><div class="ev dn" id="rc-max">₹0</div></div><div class="ec"><div class="ek">Position Size</div><div class="ev" id="rc-pos">0</div></div><div class="ec"><div class="ek">Trade Value</div><div class="ev" id="rc-tval">₹0</div></div><div class="ec"><div class="ek">Stop Dist.</div><div class="ev" id="rc-sdist">₹0</div></div></div>
-              <div class="rm"><div class="rm-ring rm-low" id="rc-ring">LOW</div><div><div class="rm-lbl">Risk Level</div><div class="rm-val" id="rc-lev">Conservative</div></div></div>
-            </div>
           </div>
         </div>
       </div>
 
-      <!-- PORTFOLIO -->
       <div class="page" id="page-portfolio">
         <div class="grid g4">
-          <div class="st st-g"><div class="stl">Total P&L</div><div class="stv" id="port-pnl">₹0.00</div><div class="sts">Realized + MTM</div></div>
-          <div class="st st-b"><div class="stl">Portfolio Value</div><div class="stv" id="port-val">₹1,00,000</div><div class="sts">Cash + Positions</div></div>
-          <div class="st st-y"><div class="stl">Win Rate</div><div class="stv" id="port-wr">—</div><div class="sts">Closed trades</div></div>
-          <div class="st st-p"><div class="stl">Total Trades</div><div class="stv" id="port-trades">0</div><div class="sts">This session</div></div>
-        </div>
-        <div class="panel" style="flex:1">
-          <div class="ph"><span class="pt">Position Detail</span><span class="pbg live">● LIVE</span></div>
-          <div style="overflow:auto;flex:1"><table class="dt"><thead><tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>P&L ₹</th><th>P&L %</th><th>Value ₹</th></tr></thead><tbody id="port-tbody"><tr><td colspan="8" class="no-data">No open positions</td></tr></tbody></table></div>
-        </div>
-        <div class="panel">
-          <div class="ph"><span class="pt">Trade Journal</span></div>
-          <div id="journal-list" style="overflow-y:auto;max-height:180px"><div class="no-data">No completed trades</div></div>
+          <div class="st st-g"><div class="stl">Total P&L</div><div class="stv" id="port-pnl">₹0.00</div></div>
+          <div class="st st-b"><div class="stl">Portfolio Value</div><div class="stv" id="port-val">₹1,00,000</div></div>
         </div>
       </div>
 
-      <!-- CHARTS -->
       <div class="page" id="page-charts" style="padding:0;gap:0">
         <div style="display:flex;align-items:center;gap:7px;padding:7px 11px;background:var(--bg1);border-bottom:1px solid var(--b1);flex-shrink:0">
           <input class="fv" id="chart-sym" style="width:110px" placeholder="NIFTY" value="NIFTY">
-          <select class="fv" id="chart-tf" style="width:72px"><option>1</option><option>5</option><option selected>15</option><option>60</option><option>D</option><option>W</option></select>
-          <select class="fv" id="chart-sty" style="width:110px"><option value="1">Candles</option><option value="2">Heikin Ashi</option><option value="3">Line</option><option value="9">Hollow</option></select>
           <button class="btn btn-n" style="width:auto;padding:5px 12px;font-size:.72rem" onclick="loadChart()">▶ LOAD</button>
-          <span class="pbg live">TRADINGVIEW</span>
         </div>
         <div style="flex:1;overflow:hidden"><iframe id="tv-chart" style="width:100%;height:100%;border:none" src="https://s.tradingview.com/widgetembed/?frameElementId=tc&symbol=NSE%3ANIFTY&interval=15&theme=dark&style=1&locale=en&toolbar_bg=%23080c11&enable_publishing=false&hide_side_toolbar=false&allow_symbol_change=true"></iframe></div>
       </div>
 
-      <!-- SCANNER -->
-      <div class="page" id="page-scanner">
-        <div class="grid g3">
-          <div class="panel py">
-            <div class="ph"><span class="pt">Scanner Config</span></div>
-            <div class="pb">
-              <div class="fi"><label class="fl">Scan Type</label><select class="fv" id="sc-type"><option value="breakout">Breakout Candidates</option><option value="oversold">RSI Oversold &lt;30</option><option value="overbought">RSI Overbought &gt;70</option><option value="volume">Volume Surge 2x+</option><option value="gap">Gap Up/Down</option><option value="momentum">Momentum Burst</option></select></div>
-              <div class="fi"><label class="fl">Universe</label><select class="fv" id="sc-uni"><option>Nifty 50</option><option>Nifty 200</option><option>Midcap 150</option></select></div>
-              <div class="fi"><label class="fl">Min Volume (Cr)</label><input class="fv" id="sc-vol" type="number" value="10" min="1"></div>
-              <div class="fi"><label class="fl">Min Price ₹</label><input class="fv" id="sc-price" type="number" value="100"></div>
-              <button class="btn btn-n" onclick="runScanner()" style="margin-bottom:0">▶ RUN SCANNER</button>
-            </div>
-          </div>
-          <div class="panel s2">
-            <div class="ph"><span class="pt">Scan Results</span><span class="pbg info" id="scan-cnt">0 signals</span></div>
-            <div style="overflow-y:auto;flex:1;padding:0 12px" id="scan-results"><div class="no-data" style="margin-top:20px">Run scanner to see signals</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- MARKETS -->
-      <div class="page" id="page-markets" style="padding:8px;gap:8px">
-        <div class="grid" style="grid-template-columns:2fr 1fr;gap:8px;flex:1;min-height:0">
-          <div class="panel" style="height:100%">
-            <div class="ph"><span class="pt">Nifty 50 Sector Heatmap</span><span class="pbg live">● LIVE</span></div>
-            <div style="flex:1;border:1px solid var(--b1);border-radius:2px;overflow:hidden;margin:0 10px 10px">
-              <iframe src="https://s.tradingview.com/embed-widget/stock-heatmap/?locale=en#%7B%22exchanges%22%3A%5B%22BSE%22%5D%2C%22dataSource%22%3A%22SENSEX%22%2C%22grouping%22%3A%22sector%22%2C%22blockSize%22%3A%22market_cap_basic%22%2C%22blockColor%22%3A%22change%22%2C%22colorTheme%22%3A%22dark%22%2C%22hasTopBar%22%3Afalse%2C%22isTransparent%22%3Atrue%7D" style="width:100%;height:100%;border:none"></iframe>
-            </div>
-          </div>
-          <div class="panel" style="height:100%">
-            <div class="ph"><span class="pt">Economic Calendar</span><span class="pbg info">GLOBAL</span></div>
-            <div style="flex:1;border:1px solid var(--b1);border-radius:2px;overflow:hidden;margin:0 10px 10px">
-              <iframe src="https://s.tradingview.com/embed-widget/events/?locale=en#%7B%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22100%25%22%2C%22importanceFilter%22%3A%220%2C1%22%2C%22countryFilter%22%3A%22in%2Cus%2Ceu%22%7D" style="width:100%;height:100%;border:none"></iframe>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ALERTS -->
-      <div class="page" id="page-alerts">
-        <div class="grid g2">
-          <div class="panel">
-            <div class="ph"><span class="pt">Create Alert</span></div>
-            <div class="pb">
-              <div class="fi"><label class="fl">Symbol</label><input class="fv" id="al-sym" placeholder="RELIANCE"></div>
-              <div class="fi"><label class="fl">Condition</label><select class="fv" id="al-cond"><option value="above">Price Above ▲</option><option value="below">Price Below ▼</option><option value="pct_up">% Rise</option><option value="pct_dn">% Fall</option></select></div>
-              <div class="fi"><label class="fl">Value</label><input class="fv" id="al-val" type="number" placeholder="0.00"></div>
-              <div class="fi"><label class="fl">Note (optional)</label><input class="fv" id="al-note" placeholder="Breakout above resistance…"></div>
-              <button class="btn btn-n" onclick="addAlert()">+ CREATE ALERT</button>
-            </div>
-          </div>
-          <div class="panel">
-            <div class="ph"><span class="pt">Active Alerts</span><span class="pbg live" id="alert-cnt">0</span></div>
-            <div id="alerts-list" style="overflow-y:auto;flex:1"><div class="no-data">No alerts set</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ORDERS -->
       <div class="page" id="page-orders">
         <div class="panel" style="flex:1">
-          <div class="ph"><span class="pt">Order Book</span><div style="display:flex;gap:7px;align-items:center"><span class="pbg live" id="ord-cnt">0 orders</span><button class="btn btn-n" style="width:auto;padding:3px 10px;font-size:.6rem" onclick="fetchOrders()">↻ REFRESH</button></div></div>
+          <div class="ph"><span class="pt">Order Book</span></div>
           <div style="overflow:auto;flex:1"><table class="dt"><thead><tr><th>Time</th><th>Order ID</th><th>Symbol</th><th>Side</th><th>Qty</th><th>Type</th><th>Price ₹</th><th>Status</th></tr></thead><tbody id="ord-tbody"><tr><td colspan="8" class="no-data">No orders yet</td></tr></tbody></table></div>
         </div>
       </div>
 
-    </div><!-- /pages -->
-  </div><!-- /main-area -->
-
-  <!-- RIGHT PANEL -->
-  <div class="right-panel">
+    </div></div><div class="right-panel">
     <div class="rp-tabs">
-      <button class="rp-tab active" onclick="setRP(this,'rp-ord')">ORDERS</button>
-      <button class="rp-tab" onclick="setRP(this,'rp-jour')">JOURNAL</button>
-      <button class="rp-tab" onclick="setRP(this,'rp-alp')">ALERTS</button>
+      <button class="rp-tab active">JOURNAL</button>
     </div>
     <div class="rp-body">
-      <div id="rp-ord"><div class="ph" style="padding:7px 11px"><span class="pt">Recent Orders</span></div><div id="rp-ord-list"><div class="no-data">No orders</div></div></div>
-      <div id="rp-jour" style="display:none"><div class="ph" style="padding:7px 11px"><span class="pt">Trade Log</span></div><div id="rp-jour-list"><div class="no-data">No trades logged</div></div></div>
-      <div id="rp-alp" style="display:none"><div class="ph" style="padding:7px 11px"><span class="pt">Alert Feed</span></div><div id="rp-alp-list"><div class="no-data">No alerts</div></div></div>
+      <div id="rp-jour"><div id="rp-jour-list"><div class="no-data">No trades logged</div></div></div>
     </div>
     <div style="border-top:1px solid var(--b1);padding:9px 11px;background:var(--bg2)">
       <div class="rp-row" style="padding:2px 0;border:none"><span class="k">Cash</span><span class="v up" id="rp-cash">₹1,00,000</span></div>
       <div class="rp-row" style="padding:2px 0;border:none"><span class="k">Used</span><span class="v" id="rp-used">₹0</span></div>
       <div class="rp-row" style="padding:2px 0;border:none"><span class="k">Day P&L</span><span class="v" id="rp-pnl">₹0.00</span></div>
-      <div class="rp-row" style="padding:2px 0;border:none"><span class="k">Mode</span><span class="v" id="rp-mode" style="color:var(--y1)">PAPER</span></div>
     </div>
   </div>
 
-</div><!-- /workspace -->
-</div><!-- /shell -->
-
-<script>
-{% raw %}
+</div></div><script>
 /* ─── STATE ──────────────────────────────────────── */
 const S={
   side:{q:'BUY',t:'BUY'},
   prices:{NIFTY:24800,BANKNIFTY:53200,SENSEX:81500,RELIANCE:2920,TCS:3950,INFY:1580,HDFC:1620,ICICIBANK:1250,SBIN:825,WIPRO:590,VIX:14.2},
-  prev:{},
-  account:{balance:100000,invested:0,realized:0,unrealized:0},
-  positions:[],orders:[],alerts:[],journal:[],pnlHist:[],
-  simulated:true
+  prev:{}, account:{balance:100000,invested:0,realized:0,unrealized:0},
+  positions:[],orders:[],journal:[],simulated:true
 };
 
 const WL=[
-  {sym:'NIFTY',name:'Nifty 50'},
-  {sym:'BANKNIFTY',name:'Bank Nifty'},
-  {sym:'RELIANCE',name:'Reliance Industries'},
-  {sym:'TCS',name:'Tata Consultancy'},
-  {sym:'INFY',name:'Infosys'},
-  {sym:'HDFC',name:'HDFC Bank'},
-  {sym:'ICICIBANK',name:'ICICI Bank'},
-  {sym:'SBIN',name:'State Bank'},
-  {sym:'WIPRO',name:'Wipro'},
+  {sym:'NIFTY',name:'Nifty 50'},{sym:'BANKNIFTY',name:'Bank Nifty'},
+  {sym:'RELIANCE',name:'Reliance Industries'},{sym:'TCS',name:'Tata Consultancy'},
+  {sym:'INFY',name:'Infosys'},{sym:'HDFC',name:'HDFC Bank'},
+  {sym:'ICICIBANK',name:'ICICI Bank'},{sym:'SBIN',name:'State Bank'},
+  {sym:'WIPRO',name:'Wipro'}
 ];
 
-/* ─── UTILS ──────────────────────────────────────── */
 const fmt=(n,d=2)=>'₹'+Math.abs(n).toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d});
 const fmtP=n=>(n>=0?'+':'-')+fmt(n);
 const fmtN=(n,d=2)=>n.toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d});
 
-/* ─── CLOCK ──────────────────────────────────────── */
 setInterval(()=>{document.getElementById('tb-clock').textContent=new Date().toLocaleTimeString('en-IN',{hour12:false})},1000);
-
-/* ─── TOAST ──────────────────────────────────────── */
 function toast(msg,type='info'){
   const c=document.getElementById('toasts'),d=document.createElement('div');
-  const icons={buy:'▲',sell:'▼',warn:'⚠',info:'ℹ'};
   d.className=`toast ${type}`;
-  d.innerHTML=`<span>${icons[type]||'•'}</span><span>${msg}</span>`;
+  d.innerHTML=`<span>${{buy:'▲',sell:'▼',warn:'⚠',info:'ℹ'}[type]||'•'}</span><span>${msg}</span>`;
   c.appendChild(d);setTimeout(()=>d.remove(),3100);
+}
+
+/* ─── GEOTRADE GLOBE & API ───────────────────────── */
+let myGlobe = null;
+
+function initGlobe(arcs) {
+    if(myGlobe) return;
+    const elem = document.getElementById('globeViz');
+    if(!elem) return;
+    
+    myGlobe = Globe()(elem)
+      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+      .backgroundColor('rgba(0,0,0,0)')
+      .arcLabel(d => d.type)
+      .arcStartLat(d => d.startLat)
+      .arcStartLng(d => d.startLng)
+      .arcEndLat(d => d.endLat)
+      .arcEndLng(d => d.endLng)
+      .arcColor(d => d.color)
+      .arcDashLength(0.4)
+      .arcDashGap(0.2)
+      .arcDashAnimateTime(2000)
+      .arcsData(arcs || []);
+      
+    myGlobe.controls().autoRotate = true;
+    myGlobe.controls().autoRotateSpeed = 0.8;
+}
+
+async function fetchGeoTrade() {
+    try {
+        const r = await fetch('/api/geotrade');
+        const d = await r.json();
+        
+        document.getElementById('gt-val').textContent = d.gti;
+        document.getElementById('gt-stat').innerHTML = `${d.gti_status} <span class="up" style="margin-left:5px">${d.gti_change}</span>`;
+        
+        document.getElementById('gt-events').innerHTML = d.events.map(e => `
+            <div style="padding:10px; background:var(--bg2); border:1px solid var(--b1); border-left:3px solid ${e.impact==='CRITICAL'?'var(--r1)':e.impact==='HIGH'?'var(--y1)':'var(--a1)'}; border-radius:3px;">
+                <div style="font-size:.55rem; color:var(--txt3); margin-bottom:4px; display:flex; justify-content:space-between;">
+                    <span>${e.time}</span><span>${e.region}</span>
+                </div>
+                <div style="font-family:var(--display); font-size:.75rem; font-weight:700; color:var(--txt1);">${e.title}</div>
+            </div>
+        `).join('');
+        
+        document.getElementById('gt-signals').innerHTML = d.signals.map(s => `
+            <div style="padding:12px; background:var(--bg2); border:1px solid var(--b1); border-radius:4px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="font-family:var(--display); font-size:.85rem; font-weight:700; color:var(--txt1);">${s.sym}</span>
+                    <span class="tag ${s.side.toLowerCase()}">${s.side}</span>
+                </div>
+                <div style="font-size:.65rem; color:var(--txt3); margin-bottom:10px; display:flex; justify-content:space-between;">
+                    <span>${s.category}</span>
+                    <span style="color:var(--txt1)">${s.price} <span class="${s.change.startsWith('+')?'up':'dn'}">${s.change}</span></span>
+                </div>
+                <div style="font-size:.65rem; color:var(--a1); margin-bottom:5px; padding-bottom:5px; border-bottom:1px solid var(--b0);">
+                    Conf: ${s.confidence}% | Uncert: ${s.uncertainty}%
+                </div>
+                <div style="font-size:.65rem; color:var(--txt2); margin-bottom:8px; line-height:1.4;">
+                    ${s.analysis}
+                </div>
+                <div style="font-size:.55rem; color:var(--txt3);">
+                    <strong>RISKS:</strong> ${s.risks.join(' • ')}
+                </div>
+            </div>
+        `).join('');
+        
+        if(!myGlobe && document.getElementById('page-geotrade').classList.contains('active')) {
+            initGlobe(d.arcs);
+        } else if (myGlobe) {
+            myGlobe.arcsData(d.arcs);
+        }
+    } catch(e) { console.error(e); }
 }
 
 /* ─── NAV ────────────────────────────────────────── */
@@ -622,116 +504,64 @@ function showTab(id){
   const pg=document.getElementById('page-'+id);if(pg)pg.classList.add('active');
   const tb=document.getElementById('tab-'+id);if(tb)tb.classList.add('active');
   const nv=document.getElementById('nav-'+id);if(nv)nv.classList.add('active');
+  
+  if(id === 'geotrade') setTimeout(fetchGeoTrade, 50);
 }
 
-function setRP(el,id){
-  document.querySelectorAll('.rp-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
-  ['rp-ord','rp-jour','rp-alp'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display=i===id?'':'none';});
-}
-
-/* ─── API ────────────────────────────────────────── */
+/* ─── API & UPDATES ──────────────────────────────── */
 async function fetchAccount(){
   try{
     const r=await fetch('/api/account'),d=await r.json();
-    S.simulated=d.status==='simulated';
     S.account={balance:d.balance,invested:d.invested,realized:d.realized,unrealized:d.unrealized};
-    const mode=S.simulated?'PAPER':'LIVE';
-    ['h-mode','rp-mode'].forEach(id=>{const e=document.getElementById(id);if(e){e.textContent=mode;e.style.color=S.simulated?'var(--y1)':'var(--g1)';}});
-    const mb=document.getElementById('mode-badge');if(mb){mb.textContent=S.simulated?'PAPER MODE':'LIVE MODE';mb.className='pbg '+(S.simulated?'sim':'live');}
-    updateAccUI();
-    S.pnlHist.push(d.realized+d.unrealized);if(S.pnlHist.length>60)S.pnlHist.shift();
-    renderSparkline();
+    const {balance,invested,realized,unrealized}=S.account;
+    const s=(id,v,c)=>{const e=document.getElementById(id);if(e){e.textContent=v;e.className=e.className.replace(/\bup\b|\bdn\b/g,'').trim();if(c)e.classList.add(c);}};
+    s('s-realized',fmtP(realized),realized>=0?'up':'dn');
+    s('s-unrealized',fmtP(unrealized),unrealized>=0?'up':'dn');
+    s('s-balance',fmt(balance));s('s-invested',fmt(invested));
+    s('d-realized',fmtP(realized),realized>=0?'up':'dn');
+    s('d-unrealized',fmtP(unrealized),unrealized>=0?'up':'dn');
+    s('rp-cash',fmt(balance));s('rp-used',fmt(invested));
+    s('rp-pnl',fmtP(realized+unrealized),realized+unrealized>=0?'up':'dn');
+    s('port-pnl',fmtP(realized+unrealized),realized+unrealized>=0?'up':'dn');
+    s('port-val',fmt(balance+invested));
   }catch(e){}
-}
-
-function setV(id,txt,cls){
-  const e=document.getElementById(id);if(!e)return;
-  e.textContent=txt;
-  e.className=e.className.replace(/\bup\b|\bdn\b/g,'').trim();
-  if(cls)e.classList.add(cls);
-}
-
-function updateAccUI(){
-  const{balance,invested,realized,unrealized}=S.account;
-  setV('s-realized',fmtP(realized),realized>=0?'up':'dn');
-  setV('s-unrealized',fmtP(unrealized),unrealized>=0?'up':'dn');
-  setV('s-balance',fmt(balance));setV('s-invested',fmt(invested));
-  setV('d-realized',fmtP(realized),realized>=0?'up':'dn');
-  setV('d-unrealized',fmtP(unrealized),unrealized>=0?'up':'dn');
-  setV('d-balance',fmt(balance));setV('d-invested',fmt(invested));
-  setV('rp-cash',fmt(balance));setV('rp-used',fmt(invested));
-  const pnl=realized+unrealized;setV('rp-pnl',fmtP(pnl),pnl>=0?'up':'dn');
-  setV('port-pnl',fmtP(pnl),pnl>=0?'up':'dn');
-  setV('port-val',fmt(balance+invested));
-  const pct=balance>0?(invested/balance*100):0;
-  const fill=document.getElementById('d-mfill');
-  if(fill){fill.style.width=Math.min(pct,100)+'%';fill.style.background=pct>80?'var(--r1)':pct>50?'var(--y1)':'linear-gradient(90deg,var(--g1),var(--a1))';}
-  const pe=document.getElementById('d-mpct');if(pe)pe.textContent=pct.toFixed(1)+'%';
 }
 
 async function fetchPositions(){
   try{
     const r=await fetch('/api/positions'),d=await r.json();
     S.positions=d.positions||[];
-    renderPositions();
-    const e=document.getElementById('s-poscount');if(e)e.textContent=S.positions.length;
-    const e2=document.getElementById('port-trades');if(e2)e2.textContent=S.orders.length;
+    const tbl=document.getElementById('t-positions');
+    if(!S.positions.length){ if(tbl)tbl.innerHTML='<tr><td colspan="6" class="no-data">No positions</td></tr>'; return; }
+    if(tbl)tbl.innerHTML=S.positions.map(p=>{
+      const pnl=p.side==='BUY'?(p.ltp-p.entryPrice)*p.qty:(p.entryPrice-p.ltp)*p.qty;
+      const cl=pnl>=0?'up':'dn';
+      return`<tr><td style="color:var(--txt1);font-family:var(--display);font-weight:700">${p.sym}</td><td><span class="tag ${p.side.toLowerCase()}">${p.side}</span></td><td>${p.qty}</td><td>${fmt(p.entryPrice)}</td><td>${fmt(p.ltp)}</td><td class="${cl}" style="font-weight:700">${fmtP(pnl)}</td></tr>`;
+    }).join('');
+    document.getElementById('s-poscount').textContent=S.positions.length;
   }catch(e){}
-}
-
-function renderPositions(){
-  const mini=document.getElementById('d-positions'),tbl=document.getElementById('t-positions'),ptbl=document.getElementById('port-tbody');
-  if(!S.positions.length){
-    if(mini)mini.innerHTML='<div class="no-data" style="padding:5px 0">No positions</div>';
-    if(tbl)tbl.innerHTML='<tr><td colspan="7" class="no-data">No positions</td></tr>';
-    if(ptbl)ptbl.innerHTML='<tr><td colspan="8" class="no-data">No open positions</td></tr>';
-    return;
-  }
-  const rows=S.positions.map(p=>{
-    const pnl=p.side==='BUY'?(p.ltp-p.entryPrice)*p.qty:(p.entryPrice-p.ltp)*p.qty;
-    const pct=(pnl/(p.entryPrice*p.qty))*100;
-    const cl=pnl>=0?'up':'dn';
-    return{p,pnl,pct,cl};
-  });
-  if(mini)mini.innerHTML=rows.map(({p,pnl,cl})=>`<div class="rp-row" style="padding:3px 0;border-bottom:1px solid var(--b0)"><span style="font-family:var(--display);font-weight:700;font-size:.78rem;color:var(--txt1)">${p.sym} <span style="font-size:.54rem;color:var(--txt3)">${p.side}×${p.qty}</span></span><span class="${cl}" style="font-family:var(--mono);font-weight:700;font-size:.7rem">${fmtP(pnl)}</span></div>`).join('');
-  if(tbl)tbl.innerHTML=rows.map(({p,pnl,pct,cl})=>`<tr><td style="color:var(--txt1);font-family:var(--display);font-weight:700">${p.sym}</td><td><span class="tag ${p.side.toLowerCase()}">${p.side}</span></td><td>${p.qty}</td><td>${fmt(p.entryPrice)}</td><td>${fmt(p.ltp)}</td><td class="${cl}" style="font-weight:700">${fmtP(pnl)}</td><td class="${cl}">${pct>=0?'+':''}${pct.toFixed(2)}%</td></tr>`).join('');
-  if(ptbl)ptbl.innerHTML=rows.map(({p,pnl,pct,cl})=>`<tr><td style="color:var(--txt1);font-family:var(--display);font-weight:700">${p.sym}</td><td><span class="tag ${p.side.toLowerCase()}">${p.side}</span></td><td>${p.qty}</td><td>${fmt(p.entryPrice)}</td><td>${fmt(p.ltp)}</td><td class="${cl}" style="font-weight:700">${fmtP(pnl)}</td><td class="${cl}">${pct>=0?'+':''}${pct.toFixed(2)}%</td><td>${fmt(p.ltp*p.qty)}</td></tr>`).join('');
 }
 
 async function fetchOrders(){
   try{
     const r=await fetch('/api/orders'),d=await r.json();
-    S.orders=d.orders||[];renderOrders();
+    S.orders=d.orders||[];
+    const tb=document.getElementById('ord-tbody');
+    if(!S.orders.length){ if(tb)tb.innerHTML='<tr><td colspan="8" class="no-data">No orders yet</td></tr>'; return; }
+    if(tb)tb.innerHTML=S.orders.map(o=>`<tr><td>${o.time}</td><td style="color:var(--txt3);font-size:.6rem">${o.order_id}</td><td style="color:var(--txt1);font-weight:700">${o.sym}</td><td><span class="tag ${(o.side||'').toLowerCase()}">${o.side}</span></td><td>${o.qty}</td><td style="color:var(--txt3)">${o.type}</td><td>${fmt(o.price)}</td><td><span class="tag ok">${o.status}</span></td></tr>`).join('');
   }catch(e){}
-}
-
-function renderOrders(){
-  const tb=document.getElementById('ord-tbody'),cnt=document.getElementById('ord-cnt'),rp=document.getElementById('rp-ord-list');
-  if(cnt)cnt.textContent=S.orders.length+' orders';
-  if(!S.orders.length){
-    if(tb)tb.innerHTML='<tr><td colspan="8" class="no-data">No orders yet</td></tr>';
-    if(rp)rp.innerHTML='<div class="no-data">No orders</div>';
-    return;
-  }
-  const sorted=[...S.orders].reverse();
-  if(tb)tb.innerHTML=sorted.map(o=>{
-    const st=o.status||'COMPLETE',sc=st==='COMPLETE'?'ok':st==='CANCELLED'?'canc':'pend';
-    return`<tr><td>${o.time||'—'}</td><td style="color:var(--txt3);font-size:.6rem">${o.order_id||'—'}</td><td style="color:var(--txt1);font-weight:700">${o.sym||o.tradingsymbol}</td><td><span class="tag ${(o.side||'').toLowerCase()}">${o.side}</span></td><td>${o.qty||o.quantity}</td><td style="color:var(--txt3)">${o.type||o.order_type}</td><td>${fmt(o.price||o.average_price||0)}</td><td><span class="tag ${sc}">${st}</span></td></tr>`;
-  }).join('');
-  if(rp)rp.innerHTML=sorted.slice(0,10).map(o=>`<div class="je"><div class="je-time">${o.time||'—'}</div><div style="display:flex;justify-content:space-between;align-items:center"><span class="je-sym">${o.sym||'—'}</span><span class="tag ${(o.side||'buy').toLowerCase()}">${o.side}</span></div><div style="display:flex;justify-content:space-between;color:var(--txt3);font-size:.6rem;margin-top:2px"><span>${o.qty}×${fmt(o.price||0)}</span><span class="tag ${o.status==='COMPLETE'?'ok':'pend'}" style="font-size:.5rem">${o.status||'COMPLETE'}</span></div></div>`).join('');
 }
 
 async function fetchPrices(){
   try{
     const r=await fetch('/api/prices'),d=await r.json();
-    if(d.prices){S.prev={...S.prices};Object.assign(S.prices,d.prices);renderWL();updateHeader();checkAlerts();}
+    if(d.prices){S.prev={...S.prices};Object.assign(S.prices,d.prices);renderWL();updateHeader();}
   }catch(e){}
 }
 
 /* ─── WATCHLIST ──────────────────────────────────── */
 let wlFilter='';
 function filterWL(v){wlFilter=v.toUpperCase();renderWL();}
-
 function renderWL(sel=''){
   const body=document.getElementById('wl-body');if(!body)return;
   const items=WL.filter(w=>!wlFilter||w.sym.includes(wlFilter)||w.name.toUpperCase().includes(wlFilter));
@@ -742,8 +572,8 @@ function renderWL(sel=''){
 }
 
 function pickSym(sym){
-  ['q-sym','t-sym'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=sym;});
-  qEst();tEst();renderWL(sym);toast(`${sym} @ ${fmt(S.prices[sym]||0)}`,'info');
+  ['q-sym','t-sym','chart-sym'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=sym;});
+  qEst();tEst();renderWL(sym);loadChart();
 }
 
 function updateHeader(){
@@ -754,157 +584,36 @@ function updateHeader(){
   });
 }
 
-/* ─── ORDER SIDES ────────────────────────────────── */
-function setQSide(s){
-  S.side.q=s;
-  document.getElementById('q-buy').classList.toggle('on',s==='BUY');
-  document.getElementById('q-sell').classList.toggle('on',s==='SELL');
-  const b=document.getElementById('q-btn');b.textContent=`PLACE ${s} ORDER`;b.className='btn btn-'+(s==='BUY'?'buy':'sell');
-}
-function setTSide(s){
-  S.side.t=s;
-  document.getElementById('t-buy').classList.toggle('on',s==='BUY');
-  document.getElementById('t-sell').classList.toggle('on',s==='SELL');
-  const b=document.getElementById('t-btn');b.textContent=`PLACE ${s} ORDER`;b.className='btn btn-'+(s==='BUY'?'buy':'sell');
-  tEst();
-}
-function toggleTP(){
-  const show=['LIMIT','SL-M'].includes(document.getElementById('t-type').value);
-  document.getElementById('t-pg').style.display=show?'':'none';
-}
+function setQSide(s){ S.side.q=s; document.getElementById('q-buy').classList.toggle('on',s==='BUY'); document.getElementById('q-sell').classList.toggle('on',s==='SELL'); const b=document.getElementById('q-btn'); b.textContent=`PLACE ${s} ORDER`; b.className='btn btn-'+(s==='BUY'?'buy':'sell'); }
+function setTSide(s){ S.side.t=s; document.getElementById('t-buy').classList.toggle('on',s==='BUY'); document.getElementById('t-sell').classList.toggle('on',s==='SELL'); const b=document.getElementById('t-btn'); b.textContent=`PLACE ${s} ORDER`; b.className='btn btn-'+(s==='BUY'?'buy':'sell'); tEst(); }
 
-/* ─── ESTIMATES ──────────────────────────────────── */
-function qEst(){
-  const sym=(document.getElementById('q-sym')?.value||'').toUpperCase(),qty=parseInt(document.getElementById('q-qty')?.value)||0,typ=document.getElementById('q-type')?.value;
-  document.getElementById('q-pg').style.display=typ==='LIMIT'?'':'none';
-  const ltp=S.prices[sym]||0;
-  document.getElementById('q-ltp').textContent=ltp?fmt(ltp):'—';
-  document.getElementById('q-est').textContent=(ltp&&qty)?fmt(ltp*qty):'—';
-}
-function tEst(){
-  const sym=(document.getElementById('t-sym')?.value||'').toUpperCase(),qty=parseInt(document.getElementById('t-qty')?.value)||0,sl=parseFloat(document.getElementById('t-sl')?.value)||0,tp=parseFloat(document.getElementById('t-tp')?.value)||0,ltp=S.prices[sym]||0;
-  document.getElementById('t-ltp').textContent=ltp?fmt(ltp):'—';
-  document.getElementById('t-est').textContent=(ltp&&qty)?fmt(ltp*qty):'—';
-  if(sl&&tp&&ltp){const risk=Math.abs(ltp-sl)*qty,rwd=Math.abs(tp-ltp)*qty;document.getElementById('t-rr').textContent=risk>0?'1:'+(rwd/risk).toFixed(2):'—';}
-  else document.getElementById('t-rr').textContent='—';
-}
+function qEst(){ const sym=(document.getElementById('q-sym')?.value||'').toUpperCase(),qty=parseInt(document.getElementById('q-qty')?.value)||0,ltp=S.prices[sym]||0; document.getElementById('q-ltp').textContent=ltp?fmt(ltp):'—'; document.getElementById('q-est').textContent=(ltp&&qty)?fmt(ltp*qty):'—'; }
+function tEst(){ const sym=(document.getElementById('t-sym')?.value||'').toUpperCase(),qty=parseInt(document.getElementById('t-qty')?.value)||0,ltp=S.prices[sym]||0; document.getElementById('t-ltp').textContent=ltp?fmt(ltp):'—'; document.getElementById('t-est').textContent=(ltp&&qty)?fmt(ltp*qty):'—'; }
 
-/* ─── PLACE ORDER ────────────────────────────────── */
-async function placeOrder(sym,side,qty,type='MARKET',price=0){
-  if(!sym||!qty){toast('Enter symbol and qty','warn');return null;}
+async function placeOrder(sym,side,qty){
+  if(!sym||!qty){toast('Enter symbol and qty','warn');return;}
   try{
-    const r=await fetch('/api/place_order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:sym,side,qty,type,price})});
+    const r=await fetch('/api/place_order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:sym,side,qty,type:'MARKET',price:0})});
     const d=await r.json();
     if(d.status==='success'){
-      toast(`${side} ${qty} ${sym} @ ${d.exec_price?fmt(d.exec_price):'MKT'} ✓`,side==='BUY'?'buy':'sell');
-      S.journal.unshift({time:new Date().toLocaleTimeString('en-IN',{hour12:false}),sym,side,qty,price:d.exec_price||0});
-      renderJournal();setTimeout(()=>{fetchAccount();fetchPositions();fetchOrders();},400);
-      return d;
-    }else{toast(`Order failed: ${d.message}`,'warn');return null;}
-  }catch(e){toast('Network error','warn');return null;}
+      toast(`${side} ${qty} ${sym} @ ${fmt(d.exec_price)} ✓`,side==='BUY'?'buy':'sell');
+      S.journal.unshift({time:new Date().toLocaleTimeString('en-IN',{hour12:false}),sym,side,qty,price:d.exec_price});
+      document.getElementById('rp-jour-list').innerHTML=S.journal.slice(0,20).map(j=>`<div class="je"><div class="je-time">${j.time}</div><div style="display:flex;justify-content:space-between"><span class="je-sym">${j.sym}</span><span class="je-sym ${j.side==='BUY'?'up':'dn'}" style="font-size:.72rem">${j.side} ×${j.qty}</span></div><div style="color:var(--txt3);font-size:.58rem">${fmt(j.price)}</div></div>`).join('');
+      setTimeout(()=>{fetchAccount();fetchPositions();fetchOrders();},400);
+    }else{toast(`Order failed: ${d.message}`,'warn');}
+  }catch(e){toast('Network error','warn');}
 }
-async function doQOrder(){await placeOrder((document.getElementById('q-sym')?.value||'').toUpperCase(),S.side.q,parseInt(document.getElementById('q-qty')?.value),document.getElementById('q-type')?.value,parseFloat(document.getElementById('q-price')?.value)||0);}
-async function doTOrder(){await placeOrder((document.getElementById('t-sym')?.value||'').toUpperCase(),S.side.t,parseInt(document.getElementById('t-qty')?.value),document.getElementById('t-type')?.value,parseFloat(document.getElementById('t-price')?.value)||0);}
+function doQOrder(){placeOrder((document.getElementById('q-sym')?.value||'').toUpperCase(),S.side.q,parseInt(document.getElementById('q-qty')?.value));}
+function doTOrder(){placeOrder((document.getElementById('t-sym')?.value||'').toUpperCase(),S.side.t,parseInt(document.getElementById('t-qty')?.value));}
 
-/* ─── RISK CALC ──────────────────────────────────── */
-function calcRisk(){
-  const size=parseFloat(document.getElementById('rc-size')?.value)||0,rP=parseFloat(document.getElementById('rc-risk')?.value)||1,entry=parseFloat(document.getElementById('rc-entry')?.value)||0,sl=parseFloat(document.getElementById('rc-sl')?.value)||0;
-  const maxR=size*rP/100,stop=Math.abs(entry-sl),pos=(stop>0&&entry>0)?Math.floor(maxR/stop):0,tv=pos*entry,spct=entry>0?(stop/entry*100):0;
-  const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  s('rc-max',fmt(maxR));s('rc-pos',pos+' shares');s('rc-tval',fmt(tv));s('rc-sdist',`${fmt(stop)} (${spct.toFixed(2)}%)`);
-  const ring=document.getElementById('rc-ring'),lev=document.getElementById('rc-lev');
-  if(rP<=1){ring.className='rm-ring rm-low';ring.textContent='LOW';lev.textContent='Conservative';}
-  else if(rP<=2){ring.className='rm-ring rm-med';ring.textContent='MED';lev.textContent='Moderate';}
-  else{ring.className='rm-ring rm-high';ring.textContent='HIGH';lev.textContent='Aggressive';}
-}
-
-/* ─── SPARKLINE ──────────────────────────────────── */
-function renderSparkline(){
-  const el=document.getElementById('sparkline');if(!el||!S.pnlHist.length)return;
-  const max=Math.max(...S.pnlHist.map(Math.abs))||1;
-  el.innerHTML=S.pnlHist.map(v=>`<div class="spbar" style="height:${Math.max(2,Math.round((Math.abs(v)/max)*28))}px;background:${v>=0?'var(--g1)':'var(--r1)'};flex:1"></div>`).join('');
-}
-
-/* ─── OPTION CHAIN ───────────────────────────────── */
-function renderOC(){
-  const nifty=S.prices['NIFTY']||24800,atm=Math.round(nifty/50)*50;
-  const strikes=[-200,-150,-100,-50,0,50,100,150,200].map(d=>atm+d);
-  const body=document.getElementById('oc-body');if(!body)return;
-  body.innerHTML=strikes.map(s=>{
-    const cLtp=Math.max(1,(nifty-s)+50*Math.random()).toFixed(1),pLtp=Math.max(1,(s-nifty)+50*Math.random()).toFixed(1);
-    const cOI=(Math.random()*50+5).toFixed(0),pOI=(Math.random()*50+5).toFixed(0);
-    return`<div class="oc-row" style="${s===atm?'background:var(--bg4)':''}"><div class="oc-call">${cOI}L / <strong>${cLtp}</strong></div><div class="oc-strike">${s}</div><div class="oc-put"><strong>${pLtp}</strong> / ${pOI}L</div></div>`;
-  }).join('');
-}
-
-/* ─── SCANNER ────────────────────────────────────── */
-const SCAN_SYMS=['RELIANCE','TCS','INFY','HDFC','ICICIBANK','SBIN','WIPRO','NIFTY','BANKNIFTY'];
-function runScanner(){
-  const type=document.getElementById('sc-type')?.value,res=document.getElementById('scan-results'),cnt=document.getElementById('scan-cnt');
-  res.innerHTML=`<div style="display:flex;align-items:center;gap:7px;padding:18px;color:var(--txt3);font-size:.68rem"><div class="spin"></div>Scanning…</div>`;
-  setTimeout(()=>{
-    const signals=SCAN_SYMS.map(sym=>{
-      const ltp=S.prices[sym]||1000,rsi=25+Math.random()*60,vol=.6+Math.random()*2.8,prev=S.prev[sym]||ltp,chg=prev?(ltp-prev)/prev*100:0;
-      let signal='',reason='';
-      if(type==='oversold'&&rsi<32){signal='BUY';reason=`RSI ${rsi.toFixed(1)} — oversold`;}
-      if(type==='overbought'&&rsi>68){signal='SELL';reason=`RSI ${rsi.toFixed(1)} — overbought`;}
-      if(type==='volume'&&vol>2){signal='BUY';reason=`Volume ${vol.toFixed(1)}x surge`;}
-      if(type==='gap'&&Math.abs(chg)>.4){signal=chg>0?'BUY':'SELL';reason=`Gap ${chg>0?'up':'down'} ${Math.abs(chg).toFixed(2)}%`;}
-      if(type==='breakout'&&rsi>55&&vol>1.5){signal='BUY';reason=`Breakout + vol ${vol.toFixed(1)}x`;}
-      if(type==='momentum'&&rsi>60&&chg>.2){signal='BUY';reason=`Momentum RSI ${rsi.toFixed(1)} +${chg.toFixed(2)}%`;}
-      return{sym,ltp,signal,reason};
-    }).filter(s=>s.signal);
-    cnt.textContent=signals.length+' signals';
-    if(!signals.length){res.innerHTML='<div class="no-data" style="margin-top:20px">No signals. Adjust filters.</div>';return;}
-    res.innerHTML=signals.map(s=>`<div class="scan-item"><div><div class="scan-sym">${s.sym}</div><div class="scan-why">${s.reason}</div></div><div style="font-family:var(--mono);font-size:.7rem">${fmt(s.ltp)}</div><span class="sig ${s.signal}">${s.signal}</span><button class="btn btn-${s.signal==='BUY'?'buy':'sell'}" style="width:auto;padding:3px 9px;font-size:.6rem" onclick="pickSym('${s.sym}');setQSide('${s.signal}');showTab('dashboard')">Trade</button></div>`).join('');
-  },900);
-}
-
-/* ─── ALERTS ─────────────────────────────────────── */
-function addAlert(){
-  const sym=(document.getElementById('al-sym')?.value||'').toUpperCase(),cond=document.getElementById('al-cond')?.value,val=parseFloat(document.getElementById('al-val')?.value)||0,note=document.getElementById('al-note')?.value||'';
-  if(!sym||!val){toast('Enter symbol and value','warn');return;}
-  S.alerts.push({sym,cond,val,note,active:true,id:Date.now()});
-  toast(`Alert: ${sym} ${cond} ${val}`,'info');renderAlerts();
-}
-function removeAlert(id){S.alerts=S.alerts.filter(a=>a.id!==id);renderAlerts();}
-function renderAlerts(){
-  const list=document.getElementById('alerts-list'),rp=document.getElementById('rp-alp-list'),cnt=document.getElementById('alert-cnt');
-  if(cnt)cnt.textContent=S.alerts.filter(a=>a.active).length;
-  const html=S.alerts.length?S.alerts.map(a=>`<div class="al-item"><div class="al-dot ${a.active?'on':'off'}"></div><div style="flex:1"><div style="font-family:var(--display);font-weight:700;font-size:.78rem;color:var(--txt1)">${a.sym}</div><div style="font-size:.58rem;color:var(--txt3)">${a.cond} ${a.val}${a.note?' — '+a.note:''}</div></div><span style="color:var(--txt3);cursor:pointer" onclick="removeAlert(${a.id})">✕</span></div>`).join(''):'<div class="no-data">No alerts set</div>';
-  if(list)list.innerHTML=html;if(rp)rp.innerHTML=html;
-}
-function checkAlerts(){
-  S.alerts.filter(a=>a.active).forEach(a=>{
-    const ltp=S.prices[a.sym]||0;
-    if((a.cond==='above'&&ltp>a.val)||(a.cond==='below'&&ltp<a.val)){
-      toast(`🔔 ${a.sym} ${a.cond} ${a.val} → ${fmt(ltp)}`,'warn');a.active=false;renderAlerts();
-    }
-  });
-}
-
-/* ─── JOURNAL ────────────────────────────────────── */
-function renderJournal(){
-  const el=document.getElementById('journal-list'),rp=document.getElementById('rp-jour-list');
-  const html=S.journal.length?S.journal.slice(0,20).map(j=>`<div class="je"><div class="je-time">${j.time}</div><div style="display:flex;justify-content:space-between"><span class="je-sym">${j.sym}</span><span class="je-sym ${j.side==='BUY'?'up':'dn'}" style="font-size:.72rem">${j.side} ×${j.qty}</span></div><div style="color:var(--txt3);font-size:.58rem">${fmt(j.price)}</div></div>`).join(''):'<div class="no-data">No trades logged</div>';
-  if(el)el.innerHTML=html;if(rp)rp.innerHTML=html;
-}
-
-/* ─── CHART ──────────────────────────────────────── */
 function loadChart(){
-  const sym=(document.getElementById('chart-sym')?.value||'NIFTY').toUpperCase(),tf=document.getElementById('chart-tf')?.value||'15',sty=document.getElementById('chart-sty')?.value||'1';
-  document.getElementById('tv-chart').src=`https://s.tradingview.com/widgetembed/?frameElementId=tc&symbol=NSE%3A${encodeURIComponent(sym)}&interval=${tf}&theme=dark&style=${sty}&locale=en&toolbar_bg=%23080c11&enable_publishing=false&hide_side_toolbar=false&allow_symbol_change=true`;
+  const sym=(document.getElementById('chart-sym')?.value||'NIFTY').toUpperCase();
+  document.getElementById('tv-chart').src=`https://s.tradingview.com/widgetembed/?frameElementId=tc&symbol=NSE%3A${encodeURIComponent(sym)}&interval=15&theme=dark&style=1&locale=en&toolbar_bg=%23080c11&enable_publishing=false&hide_side_toolbar=false&allow_symbol_change=true`;
 }
 
-/* ─── INIT & POLL ────────────────────────────────── */
 async function pollAll(){await Promise.all([fetchAccount(),fetchPositions(),fetchPrices()]);}
-pollAll();fetchOrders();renderWL();renderOC();renderJournal();renderAlerts();calcRisk();
-setInterval(pollAll,2000);setInterval(fetchOrders,5000);setInterval(renderOC,6000);
-
-// Seed sparkline
-for(let i=0;i<30;i++)S.pnlHist.push(Math.random()*600-300);
-renderSparkline();
-{% endraw %}
+pollAll();fetchOrders();renderWL();
+setInterval(pollAll,2000);setInterval(fetchOrders,5000);
 </script>
 </body>
 </html>
