@@ -1,5 +1,7 @@
 flask>=2.3.0
+gunicorn==22.0.0
 kiteconnect>=4.1.0
 pandas>=2.0.0
 numpy>=1.24.0
-gunicorn
+yfinance>=0.2.0
+requests>=2.31.0
