@@ -1,6 +1,6 @@
 """
 WebCode Terminal — Ultimate Mega Backend
-Flask + Gunicorn + Real-Time Fundamentals + Kite/Paper Trading
+Flask + Gunicorn + Real-Time Fundamentals + Kite/Paper Trading + GeoTrade
 """
 
 import os, random, time, threading
@@ -38,7 +38,7 @@ sim_state = {
     "positions": [], "orders": [], "order_counter": 1,
 }
 
-# Base prices (will be updated by yfinance in background)
+# Base prices
 SIM_PRICES = {
     "RELIANCE": 2920.0, "TCS": 3950.0, "INFY": 1580.0,
     "HDFC": 1620.0, "ICICIBANK": 1250.0, "SBIN": 825.0,
@@ -60,15 +60,14 @@ def sync_real_prices():
             pass
 
 def _sim_tick():
-    sync_real_prices() # Initial real-data sync
+    sync_real_prices()
     while True:
-        # Simulate live tick fluctuations around the base price
         for sym in list(SIM_PRICES.keys()):
             drift = 0.0005 if sym == "VIX" else 0.0015
             SIM_PRICES[sym] = round(SIM_PRICES[sym] * (1 + random.uniform(-drift, drift)), 2)
         for p in sim_state["positions"]:
             p["ltp"] = SIM_PRICES.get(p["sym"], p["ltp"])
-        time.sleep(1.5) # Fast 1.5s tick rate for live feel
+        time.sleep(1.5)
 
 threading.Thread(target=_sim_tick, daemon=True).start()
 
@@ -150,6 +149,40 @@ def api_fundamentals(sym):
         })
     except Exception as e:
         return jsonify({"status": "error", "message": "No data"})
+
+@app.route("/api/geotrade")
+def api_geotrade():
+    """Mock API for GEOTRADE 3D Globe & AI Signals"""
+    return jsonify({
+        "gti": 71.4,
+        "gti_change": "+2.1",
+        "gti_status": "ELEVATED",
+        "events": [
+            {"time": datetime.now().strftime("%H:%M UTC"), "region": "Middle East", "impact": "CRITICAL", "title": "Strait of Hormuz Naval Drills"},
+            {"time": "06:00 AM", "region": "Europe", "impact": "HIGH", "title": "ECB Emergency Statement"},
+            {"time": "04:30 AM", "region": "Asia", "impact": "MEDIUM", "title": "Tech Tariff Announcements"}
+        ],
+        "signals": [
+            {
+                "sym": "XAU/USD", "side": "BUY", "category": "Commodities", 
+                "price": "$2314.50", "change": "+1.2%", "confidence": 85, "uncertainty": 10,
+                "analysis": "Safe haven flows increasing due to elevated geopolitical stress.",
+                "risks": ["Sudden de-escalation", "Strong USD data"]
+            },
+            {
+                "sym": "SPX", "side": "SELL", "category": "Equities", 
+                "price": "$5120.30", "change": "-1.5%", "confidence": 78, "uncertainty": 22,
+                "analysis": "Risk-off sentiment accelerating ahead of key inflation data.",
+                "risks": ["Dovish central bank pivot", "Oversold bounce"]
+            }
+        ],
+        "arcs": [
+            {"startLat": 25.2, "startLng": 55.2, "endLat": 38.9, "endLng": -77.0, "color": "#ff2d55", "type": "Military"},
+            {"startLat": 55.7, "startLng": 37.6, "endLat": 52.5, "endLng": 13.4, "color": "#ffcc00", "type": "Sanctions"},
+            {"startLat": 39.9, "startLng": 116.3, "endLat": -35.2, "endLng": 149.1, "color": "#00aaff", "type": "Trade"},
+            {"startLat": 28.6, "startLng": 77.2, "endLat": 51.5, "endLng": -0.1, "color": "#00ff88", "type": "Diplomatic"}
+        ]
+    })
 
 @app.route("/health")
 def health_check():
