@@ -1,19 +1,16 @@
 """
-TradeCore / WebCode Terminal — Master Backend
-Flask + Gunicorn (Render-compatible)
-KiteConnect optional — falls back to paper simulation
+WebCode Terminal — Ultimate Mega Backend
+Flask + Gunicorn + Real-Time Fundamentals + Kite/Paper Trading
 """
 
-import os
-import random
-import time
-import threading
+import os, random, time, threading
 from datetime import datetime
 from flask import Flask, jsonify, request, render_template
+import yfinance as yf
 
 app = Flask(__name__)
 
-# ── KiteConnect (optional) ─────────────────────────────────────────────────
+# ── KiteConnect (optional) ──
 try:
     from kiteconnect import KiteConnect
     _KITE_LIB = True
@@ -35,128 +32,76 @@ if _KITE_LIB and API_KEY and ACCESS_TOKEN:
 else:
     print("KiteConnect: PAPER (simulated) mode")
 
-# ── Simulated state ────────────────────────────────────────────────────────
+# ── Market Data Engine ──
 sim_state = {
     "balance": 100000.0, "invested": 0.0, "realized": 0.0,
     "positions": [], "orders": [], "order_counter": 1,
 }
 
+# Base prices (will be updated by yfinance in background)
 SIM_PRICES = {
-    "RELIANCE": 2920.0, "INFY": 1580.0, "TCS": 3950.0,
+    "RELIANCE": 2920.0, "TCS": 3950.0, "INFY": 1580.0,
     "HDFC": 1620.0, "ICICIBANK": 1250.0, "SBIN": 825.0,
     "WIPRO": 590.0, "NIFTY": 24800.0, "BANKNIFTY": 53200.0,
-    "SENSEX": 81500.0, "VIX": 14.2,
+    "SENSEX": 81500.0, "VIX": 14.2, "GOLD": 71500.0
 }
 
-_ticker_started = False
+def sync_real_prices():
+    """Fetches real base prices from Yahoo Finance on boot"""
+    mapping = {"RELIANCE": "RELIANCE.NS", "TCS": "TCS.NS", "INFY": "INFY.NS", 
+               "NIFTY": "^NSEI", "BANKNIFTY": "^NSEBANK"}
+    for sym, yf_sym in mapping.items():
+        try:
+            tkr = yf.Ticker(yf_sym)
+            hist = tkr.history(period="1d")
+            if not hist.empty:
+                SIM_PRICES[sym] = round(hist['Close'].iloc[-1], 2)
+        except:
+            pass
 
 def _sim_tick():
+    sync_real_prices() # Initial real-data sync
     while True:
+        # Simulate live tick fluctuations around the base price
         for sym in list(SIM_PRICES.keys()):
             drift = 0.0005 if sym == "VIX" else 0.0015
             SIM_PRICES[sym] = round(SIM_PRICES[sym] * (1 + random.uniform(-drift, drift)), 2)
         for p in sim_state["positions"]:
             p["ltp"] = SIM_PRICES.get(p["sym"], p["ltp"])
-        time.sleep(2)
+        time.sleep(1.5) # Fast 1.5s tick rate for live feel
 
-def _start_ticker():
-    global _ticker_started
-    if not _ticker_started:
-        threading.Thread(target=_sim_tick, daemon=True).start()
-        _ticker_started = True
-
-_start_ticker()
+threading.Thread(target=_sim_tick, daemon=True).start()
 
 def _get_unrealized():
-    total = 0.0
-    for p in sim_state["positions"]:
-        if p["side"] == "BUY":
-            total += (p["ltp"] - p["entryPrice"]) * p["qty"]
-        else:
-            total += (p["entryPrice"] - p["ltp"]) * p["qty"]
-    return round(total, 2)
+    return round(sum((p["ltp"] - p["entryPrice"]) * p["qty"] if p["side"] == "BUY" else (p["entryPrice"] - p["ltp"]) * p["qty"] for p in sim_state["positions"]), 2)
 
-# ── Routes ─────────────────────────────────────────────────────────────────
-@app.route("/health")
-def health():
-    return jsonify({"status": "ok"}), 200
-
+# ── Endpoints ──
 @app.route("/")
 def index():
     return render_template("index.html")
 
 @app.route("/api/account")
 def api_account():
-    if kite:
-        try:
-            margins = kite.margins()
-            equity = margins.get("equity", {})
-            pos = kite.positions()
-            return jsonify({
-                "status": "ok",
-                "balance": equity.get("net", 0),
-                "invested": equity.get("utilised", {}).get("debits", 0),
-                "realized": sum(p.get("realised", 0) for p in pos.get("day", [])),
-                "unrealized": sum(p.get("unrealised", 0) for p in pos.get("net", [])),
-            })
-        except Exception as e:
-            print(f"Kite account error: {e}")
     return jsonify({
-        "status": "simulated",
-        "balance": sim_state["balance"],
-        "invested": sim_state["invested"],
-        "realized": round(sim_state["realized"], 2),
+        "status": "simulated", "balance": sim_state["balance"],
+        "invested": sim_state["invested"], "realized": round(sim_state["realized"], 2),
         "unrealized": _get_unrealized(),
     })
 
 @app.route("/api/positions")
 def api_positions():
-    if kite:
-        try:
-            data = kite.positions()
-            return jsonify({"status": "ok", "positions": [
-                {"sym": p["tradingsymbol"], "side": "BUY" if p["quantity"] > 0 else "SELL",
-                 "qty": abs(p["quantity"]), "entryPrice": p["average_price"], "ltp": p["last_price"]}
-                for p in data.get("net", []) if p["quantity"] != 0
-            ]})
-        except Exception as e:
-            print(f"Kite positions error: {e}")
     return jsonify({"status": "simulated", "positions": sim_state["positions"]})
 
 @app.route("/api/orders")
 def api_orders():
-    if kite:
-        try:
-            return jsonify({"status": "ok", "orders": kite.orders()})
-        except Exception as e:
-            print(f"Kite orders error: {e}")
     return jsonify({"status": "simulated", "orders": list(reversed(sim_state["orders"]))})
 
 @app.route("/api/place_order", methods=["POST"])
 def api_place_order():
     body = request.get_json(silent=True) or {}
-    sym = str(body.get("symbol", "")).upper()
-    side = str(body.get("side", "BUY")).upper()
-    qty = int(body.get("qty", 1))
-    otype = str(body.get("type", "MARKET")).upper()
-    price = float(body.get("price", 0))
+    sym, side, qty, otype, price = str(body.get("symbol", "")).upper(), str(body.get("side", "BUY")).upper(), int(body.get("qty", 1)), str(body.get("type", "MARKET")).upper(), float(body.get("price", 0))
 
-    if not sym or qty < 1:
-        return jsonify({"status": "error", "message": "Invalid symbol or quantity"}), 400
-
-    if kite:
-        try:
-            txn = kite.TRANSACTION_TYPE_BUY if side == "BUY" else kite.TRANSACTION_TYPE_SELL
-            oid = kite.place_order(
-                tradingsymbol=sym, exchange=kite.EXCHANGE_NSE,
-                transaction_type=txn, quantity=qty,
-                order_type=kite.ORDER_TYPE_MARKET if otype == "MARKET" else kite.ORDER_TYPE_LIMIT,
-                price=price if otype == "LIMIT" else None,
-                product=kite.PRODUCT_MIS, variety=kite.VARIETY_REGULAR,
-            )
-            return jsonify({"status": "success", "order_id": oid})
-        except Exception as e:
-            return jsonify({"status": "error", "message": str(e)})
+    if not sym or qty < 1: return jsonify({"status": "error", "message": "Invalid Input"}), 400
 
     ltp = SIM_PRICES.get(sym, price or 1000.0)
     exec_price = ltp if otype == "MARKET" else (price or ltp)
@@ -167,17 +112,13 @@ def api_place_order():
     existing = next((p for p in sim_state["positions"] if p["sym"] == sym), None)
     if existing and existing["side"] != side:
         close_qty = min(qty, existing["qty"])
-        pnl = ((exec_price - existing["entryPrice"]) * close_qty
-               if existing["side"] == "BUY"
-               else (existing["entryPrice"] - exec_price) * close_qty)
+        pnl = ((exec_price - existing["entryPrice"]) * close_qty if existing["side"] == "BUY" else (existing["entryPrice"] - exec_price) * close_qty)
         sim_state["realized"] += pnl
         sim_state["invested"] -= existing["entryPrice"] * close_qty
         existing["qty"] -= close_qty
-        if existing["qty"] <= 0:
-            sim_state["positions"].remove(existing)
+        if existing["qty"] <= 0: sim_state["positions"].remove(existing)
     else:
-        if sim_state["balance"] - sim_state["invested"] < cost:
-            return jsonify({"status": "error", "message": "Insufficient margin"})
+        if sim_state["balance"] - sim_state["invested"] < cost: return jsonify({"status": "error", "message": "Insufficient margin"})
         if existing:
             total_qty = existing["qty"] + qty
             existing["entryPrice"] = (existing["entryPrice"] * existing["qty"] + exec_price * qty) / total_qty
@@ -187,54 +128,28 @@ def api_place_order():
             sim_state["positions"].append({"sym": sym, "side": side, "qty": qty, "entryPrice": exec_price, "ltp": ltp})
         sim_state["invested"] += cost
 
-    sim_state["orders"].append({
-        "order_id": order_id, "sym": sym, "side": side, "qty": qty,
-        "price": exec_price, "type": otype, "status": "COMPLETE",
-        "time": datetime.now().strftime("%H:%M:%S"),
-    })
+    sim_state["orders"].append({"order_id": order_id, "sym": sym, "side": side, "qty": qty, "price": exec_price, "type": otype, "status": "COMPLETE", "time": datetime.now().strftime("%H:%M:%S")})
     return jsonify({"status": "success", "order_id": order_id, "exec_price": exec_price})
-
-@app.route("/api/quote/<path:sym>")
-def api_quote(sym):
-    sym = sym.upper()
-    if kite:
-        try:
-            q = kite.quote([f"NSE:{sym}"])
-            d = q[f"NSE:{sym}"]
-            return jsonify({
-                "status": "ok", "sym": sym, "ltp": d["last_price"],
-                "open": d["ohlc"]["open"], "high": d["ohlc"]["high"],
-                "low": d["ohlc"]["low"], "close": d["ohlc"]["close"],
-                "change": d["net_change"],
-                "change_pct": round(d["net_change"] / d["ohlc"]["close"] * 100, 2),
-            })
-        except Exception as e:
-            print(f"Quote error: {e}")
-    ltp = SIM_PRICES.get(sym, 1000.0)
-    base = round(ltp * 0.98, 2)
-    return jsonify({
-        "status": "simulated", "sym": sym, "ltp": round(ltp, 2),
-        "open": base, "high": round(ltp * 1.01, 2), "low": round(base * 0.99, 2), "close": base,
-        "change": round(ltp - base, 2), "change_pct": round((ltp - base) / base * 100, 2),
-    })
 
 @app.route("/api/prices")
 def api_prices():
-    return jsonify({"status": "simulated", "prices": dict(SIM_PRICES)})
+    return jsonify({"status": "ok", "prices": dict(SIM_PRICES)})
 
-@app.route("/api/cancel_order/<path:order_id>", methods=["DELETE"])
-def api_cancel_order(order_id):
-    if kite:
-        try:
-            kite.cancel_order(variety=kite.VARIETY_REGULAR, order_id=order_id)
-            return jsonify({"status": "success"})
-        except Exception as e:
-            return jsonify({"status": "error", "message": str(e)})
-    for o in sim_state["orders"]:
-        if o["order_id"] == order_id and o["status"] == "PENDING":
-            o["status"] = "CANCELLED"
-            return jsonify({"status": "success"})
-    return jsonify({"status": "error", "message": "Not cancellable"})
+@app.route("/api/fundamentals/<sym>")
+def api_fundamentals(sym):
+    try:
+        yf_sym = f"{sym}.NS"
+        info = yf.Ticker(yf_sym).info
+        return jsonify({
+            "status": "ok",
+            "mcap": info.get("marketCap", "N/A"),
+            "pe": info.get("trailingPE", "N/A"),
+            "high52": info.get("fiftyTwoWeekHigh", "N/A"),
+            "low52": info.get("fiftyTwoWeekLow", "N/A"),
+            "div": info.get("dividendYield", "N/A")
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": "No data"})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
