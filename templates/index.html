@@ -421,6 +421,19 @@ function toast(msg,type='info'){
   d.className=`toast ${type}`;
   d.innerHTML=`<span>${{buy:'▲',sell:'▼',warn:'⚠',info:'ℹ'}[type]||'•'}</span><span>${msg}</span>`;
   c.appendChild(d);setTimeout(()=>d.remove(),3100);
+  function toast(msg, type='info') {
+  const c = document.getElementById('toasts');
+  const d = document.createElement('div');
+  d.className = `toast ${type}`;
+  
+  // Define the icons separately to avoid Flask/Jinja2 {{ syntax crash
+  const icons = {buy: '▲', sell: '▼', warn: '⚠', info: 'ℹ'};
+  const icon = icons[type] || '•';
+  
+  d.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  c.appendChild(d);
+  setTimeout(() => d.remove(), 3100);
+}
 }
 
 /* ─── GEOTRADE GLOBE & API ───────────────────────── */
